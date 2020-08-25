@@ -1,10 +1,10 @@
 import time
-import mnlst
+import meaningless_shoot
 
-mnlst.fps = int(input())
-mnlst.game_loop()
+meaningless_shoot.fps = int(input())
+meaningless_shoot.game_loop()
 
-while 'r' in mnlst.buttons:
+while 'r' in meaningless_shoot.buttons:
     print("\nreloading game\n")
     time.sleep(0.5)
-    mnlst.game_loop()
+    meaningless_shoot.game_loop()
