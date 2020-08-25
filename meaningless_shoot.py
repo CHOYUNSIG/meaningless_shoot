@@ -2,6 +2,7 @@
 import pygame
 import random
 import math
+import os
 #import gc
 #import tracemalloc
 
@@ -12,10 +13,11 @@ need before start
 '''
 fps = 60
 wall_pattern_size = 11
-size = [600,480]
+size = [640,480]
 COLOR_BG = (50, 50, 50)
 bullet_cool = 0.1
 particle_remain_time = 10
+windowPos_x, windowPos_y = 100, 100
 
 '''
 <global var 1>
@@ -251,12 +253,14 @@ class particle(pygame.sprite.Sprite): #sprite 3
 
 
 def game_loop():
+    #set the location of window by editing env var
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (windowPos_x,windowPos_y)
     # Initialize the game engine
     pygame.init()
     #tracemalloc.start()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("meaningless : shoot")
+    pygame.display.set_caption("meaningless: shoot")
 
     #var init
     global buttons
@@ -414,7 +418,7 @@ def game_loop():
             for i in range(wall_pattern_size):
                 for j in range(wall_pattern_size):
                     if temp_wall[i][j] == 1:
-                        new_wall = wall((init_x+size[0]//20*i, init_y+size[0]//20*j))
+                        new_wall = wall((init_x+player_size*i, init_y+player_size*j))
                         if len(pygame.sprite.spritecollide(new_wall,wall_cache,False)) != 0 : is_it_overlayed = True
                         new_wall_cache.append(new_wall)
             if is_it_overlayed == False : wall_cache.extend(new_wall_cache)
