@@ -66,8 +66,8 @@ class initApp(QWidget):
         fps = int(text)
         meaningless_shoot.fps = fps
     def setting_size(self, text):
-        text = text.split('x')
-        text[1] = text[1].split()[0]
+        text = text.split()
+        text = text[0].split('x')
         meaningless_shoot.size = [int(text[0]), int(text[1])]
     def start(self):
         self.game_start = True
