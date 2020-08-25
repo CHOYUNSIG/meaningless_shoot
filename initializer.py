@@ -1,8 +1,10 @@
-import sys
-import os
+import time
 import meaningless_shoot
 
-if 'r' in meaningless_shoot.buttons:
-    args = sys.argv[:]
-    args.insert(0, sys.executable)
-    os.execv(sys.executable, args)
+meaningless_shoot.fps = int(input())
+meaningless_shoot.game_loop()
+
+while 'r' in meaningless_shoot.buttons:
+    print("\nreloading game\n")
+    time.sleep(0.5)
+    meaningless_shoot.game_loop()
