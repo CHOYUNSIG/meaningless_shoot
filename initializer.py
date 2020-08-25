@@ -72,7 +72,9 @@ class initApp(QWidget):
     def start(self):
         self.game_start = True
         meaningless_shoot.windowPos_x = self.frameGeometry().center().x() - meaningless_shoot.size[0]//2
+        if meaningless_shoot.windowPos_x < 0: meaningless_shoot.windowPos_x = 8
         meaningless_shoot.windowPos_y = self.frameGeometry().center().y() - meaningless_shoot.size[1]//2
+        if meaningless_shoot.windowPos_y < 0: meaningless_shoot.windowPos_y = 32
         QCoreApplication.instance().quit()
 
         
@@ -83,6 +85,7 @@ app.exec_()
 del app
 
 if settingWindow.game_start:
+    meaningless_shoot.global_var1_init()
     meaningless_shoot.game_loop()
     while 'r' in meaningless_shoot.buttons:
         print("\nreloading game\n")

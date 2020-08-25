@@ -20,8 +20,10 @@ particle_remain_time = 10
 windowPos_x, windowPos_y = 100, 100
 
 '''
-<global var 1>
-cannot change
+<global_var_1>
+cannot be changed by internal
+based on hyperparameters
+must be init by ext func
 '''
 player_size = size[0]//20
 player_velocity = size[0]/fps/2
@@ -32,10 +34,18 @@ image_player = pygame.image.load('meaningless_data/image/player.png')
 image_bullet = pygame.image.load('meaningless_data/image/bullet.png')
 image_wall = pygame.image.load('meaningless_data/image/wall.png')
 
+def global_var1_init():
+    global player_size
+    global player_velocity
+    global bullet_velocity
 
+    player_size = size[0]//20
+    player_velocity = size[0]/fps/2
+    bullet_velocity = size[0]/fps/0.5
+    
 '''
-<global var 2>
-can change
+<global_var_2>
+can be changed by internal
 globalization in any obj
 ''' 
 buttons = list()
