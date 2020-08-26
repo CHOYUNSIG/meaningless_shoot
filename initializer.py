@@ -89,7 +89,7 @@ if settingWindow.game_start:
     meaningless_shoot.game_loop()
     while 'r' in meaningless_shoot.buttons:
         print("\nreloading game\n")
-        time.sleep(0.5)
+        time.sleep(0.1)
         meaningless_shoot.game_loop()
 
 exit()

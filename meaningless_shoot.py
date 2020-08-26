@@ -51,7 +51,6 @@ globalization in any obj
 buttons = list()
 x_weight, y_weight = 0, 0
 move_x, move_y = 0, 0
-atk_permission = [0,0,0,0]
 done = False
 
 #debug parameters
@@ -272,6 +271,9 @@ def game_loop():
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("meaningless: shoot")
 
+    '''
+    globalization and initialization
+    '''
     #var init
     global buttons
     global x_weight, y_weight
@@ -284,10 +286,13 @@ def game_loop():
     buttons = list()
     x_weight, y_weight = 0, 0
     move_x, move_y = 0, 0
-    atk_permission = [0,0,0,0]
     done = False
 
     debug_frame = 0
+
+    '''
+    local var
+    '''
 
     group_list = list()
     for cache in cache_list:
@@ -299,7 +304,10 @@ def game_loop():
         draw_cache.clear()
         draw_group_list.append(pygame.sprite.Group(*draw_cache))
     
-    #게임 초기조건
+    atk_direction_queue = list()
+    atk_permission = 0
+
+    '''게임 초기조건'''
     player_cache.append(player(0,0))
 
     wall_cache.append(wall((size[0]//2+player_size*2.5, size[1]//2+player_size*2.5)))
@@ -330,8 +338,8 @@ def game_loop():
         # Leave this out and we will use all CPU we can.
         clock.tick(fps)
         screen.fill(COLOR_BG)
-
-        # Main Event Loop
+        
+        #키 입력 처리
         for event in pygame.event.get():# User did something
             if event.type == pygame.KEYDOWN:# If user release what he pressed.
                 buttons = [pygame.key.name(k) for k,v in enumerate(pygame.key.get_pressed()) if v]
@@ -358,37 +366,46 @@ def game_loop():
                 delete_sprite(particle_cache.pop(i))
         #파티클 처리
 
-        # 키 입력 해석 시작
+        #나가는 키 입력
         if 'escape' in buttons:
             print("ecs entered")
             done=True
         if 'r' in buttons:
             done=True
 
-        if 'right' in buttons and atk_permission[0] == 0:
-            bullet_cache.append(bullet((size[0]/2,size[1]/2),0))
-            atk_permission[0] = round(bullet_cool*fps)
-        if 'down' in buttons and atk_permission[1] == 0:
-            bullet_cache.append(bullet((size[0]/2,size[1]/2),90))
-            atk_permission[1] = round(bullet_cool*fps)
-        if 'left' in buttons and atk_permission[2] == 0:
-            bullet_cache.append(bullet((size[0]/2,size[1]/2),180))
-            atk_permission[2] = round(bullet_cool*fps)
-        if 'up' in buttons and atk_permission[3] == 0:
-            bullet_cache.append(bullet((size[0]/2,size[1]/2),270))
-            atk_permission[3] = round(bullet_cool*fps)
+        #총알 발사
+        if 'left' in buttons and 'left' not in atk_direction_queue:
+            atk_direction_queue.append('left')
+        elif 'down' in buttons and 'down' not in atk_direction_queue: 
+            atk_direction_queue.append('down')
+        elif 'right' in buttons and 'right' not in atk_direction_queue:
+            atk_direction_queue.append('right')
+        elif 'up' in buttons and 'up' not in atk_direction_queue: 
+            atk_direction_queue.append('up')
 
-        for i in range(4):
-            if atk_permission[i] > 0 : atk_permission[i] -= 1
+        if len(atk_direction_queue) != 0 and atk_direction_queue[0] not in buttons:
+            del atk_direction_queue[0]
 
+        if atk_permission == 0 and len(atk_direction_queue) != 0:
+            if atk_direction_queue[0] == 'right':
+                bullet_cache.append(bullet((size[0]/2,size[1]/2),0))
+            elif atk_direction_queue[0] == 'down':
+                bullet_cache.append(bullet((size[0]/2,size[1]/2),90))
+            elif atk_direction_queue[0] == 'left':
+                bullet_cache.append(bullet((size[0]/2,size[1]/2),180))
+            else:
+                bullet_cache.append(bullet((size[0]/2,size[1]/2),270))
+            atk_permission = round(bullet_cool*fps)
+        elif atk_permission > 0 : atk_permission -= 1
+        #총알 발사 끝
+
+        #플레이어 이동
         if 'w' in buttons and move_y != 1 : move_y = -1
         elif 's' in buttons and move_y != -1 : move_y = 1
         else : move_y = 0
         if 'a' in buttons and move_x != 1 : move_x = -1
         elif 'd' in buttons and move_x != -1 : move_x = 1
         else : move_x = 0
-
-        #키 입력 해석 끝
 
         x_weight, y_weight = 0, 0
         if move_x != 0 or move_y != 0:
@@ -407,8 +424,9 @@ def game_loop():
                     break
                 x_weight += move_x; y_weight += move_y
             x_weight, y_weight = -x_weight, -y_weight
-        #플레이어 이동
+        #플레이어 이동 끝
 
+        #벽 생성
         if random.randrange(fps*1) == 1 and (move_x != 0 or move_y != 0):
             if move_x == -1: init_x = -size[0] // 20 * wall_pattern_size
             elif move_x == 0: init_x = size[0] // 2 - size[0] // 20 * (wall_pattern_size // 2)
@@ -432,7 +450,7 @@ def game_loop():
                         if len(pygame.sprite.spritecollide(new_wall,wall_cache,False)) != 0 : is_it_overlayed = True
                         new_wall_cache.append(new_wall)
             if is_it_overlayed == False : wall_cache.extend(new_wall_cache)
-        #벽 생성
+        #벽 생성 끝
 
         # 게임 상태 업데이트시 해야할 부분
         for index in range(4):
