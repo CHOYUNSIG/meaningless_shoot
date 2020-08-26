@@ -3,6 +3,7 @@ import pygame
 import random
 import math
 import os
+import win32gui
 #import gc
 #import tracemalloc
 
@@ -18,6 +19,15 @@ COLOR_BG = (50, 50, 50)
 bullet_cool = 0.1
 particle_remain_time = 10
 windowPos_x, windowPos_y = 100, 100
+windowPos_x_c, windowPos_y_c = 0, 0
+
+def modWinPos(hwnd, extra):
+    if win32gui.GetWindowText(hwnd) == 'meaningless: shoot':
+        rect = win32gui.GetWindowRect(hwnd)
+        global windowPos_x, windowPos_y
+        windowPos_x = rect[0] + windowPos_x_c
+        windowPos_y = rect[1] + windowPos_y_c
+    return
 
 '''
 <global_var_1>
@@ -43,6 +53,7 @@ def global_var1_init():
     player_velocity = size[0]/fps/2
     bullet_velocity = size[0]/fps/0.5
     
+    return
 '''
 <global_var_2>
 can be changed by internal
@@ -100,7 +111,7 @@ def delete_sprite(input_sprite):
     '''
     #gc.collect()
     del input_sprite
-
+    return
 
 
 
@@ -264,6 +275,7 @@ class particle(pygame.sprite.Sprite): #sprite 3
 def game_loop():
     #set the location of window by editing env var
     os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (windowPos_x, windowPos_y)
+
     # Initialize the game engine
     pygame.init()
     #tracemalloc.start()
@@ -487,6 +499,7 @@ def game_loop():
     for i in range(4):
         for j in range(len(cache_list[i])-1,-1,-1): delete_sprite(cache_list[i].pop(j))
         for j in range(len(draw_cache_list[i])-1,-1,-1): delete_sprite(draw_cache_list[i].pop(j))
+    win32gui.EnumWindows(modWinPos, None)
     pygame.quit()
 
 #game_loop()
