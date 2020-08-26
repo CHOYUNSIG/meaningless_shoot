@@ -91,5 +91,3 @@ if settingWindow.game_start:
         print("\nreloading game\n")
         time.sleep(0.1)
         meaningless_shoot.game_loop()
-
-exit()

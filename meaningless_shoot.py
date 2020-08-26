@@ -263,7 +263,7 @@ class particle(pygame.sprite.Sprite): #sprite 3
 
 def game_loop():
     #set the location of window by editing env var
-    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (windowPos_x,windowPos_y)
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (windowPos_x, windowPos_y)
     # Initialize the game engine
     pygame.init()
     #tracemalloc.start()
