@@ -3,31 +3,38 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import time
 import meaningless_shoot
-import pygame
-import win32gui
-import os
 
-rect = None
-def getWinPos(hwnd, extra):
-    if win32gui.GetWindowText(hwnd) == 'meaningless: test':
-        global rect
-        rect = win32gui.GetWindowRect(hwnd)
-    return 
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (0, 0)
-pygame.init()
-screen = pygame.display.set_mode([300,150])
-textSurfaceObj = pygame.font.Font('meaningless_data/font/OpenSans-Bold.ttf', 32).render('loading...', True, (255,255,255), (0,0,0))
-textRectObj = textSurfaceObj.get_rect()
-textRectObj.center = (100, 30)
-screen.blit(textSurfaceObj, textRectObj)
-pygame.display.set_caption("meaningless: test")
-pygame.display.flip()
-win32gui.EnumWindows(getWinPos, None)
-pygame.quit()
+try:
+    import pygame
+    import win32gui
+    import os
 
-meaningless_shoot.windowPos_x_c = -rect[0]
-meaningless_shoot.windowPos_y_c = -rect[1]
+    rect = None
+    def getWinPos(hwnd, extra):
+        if win32gui.GetWindowText(hwnd) == 'meaningless: test':
+            global rect
+            rect = win32gui.GetWindowRect(hwnd)
+        return 
+
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (0, 0)
+    pygame.init()
+    screen = pygame.display.set_mode([300,150])
+    textSurfaceObj = pygame.font.Font('meaningless_data/font/OpenSans-Bold.ttf', 32).render('loading...', True, (255,255,255), (0,0,0))
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (100, 30)
+    screen.blit(textSurfaceObj, textRectObj)
+    pygame.display.set_caption("meaningless: test")
+    pygame.display.flip()
+    win32gui.EnumWindows(getWinPos, None)
+    pygame.quit()
+
+    meaningless_shoot.windowPos_x_c = -rect[0]
+    meaningless_shoot.windowPos_y_c = -rect[1]
+except:
+    meaningless_shoot.windowPos_x_c = 10
+    meaningless_shoot.windowPos_y_c = 40
+
 
 class initApp(QWidget):
     def __init__(self):
