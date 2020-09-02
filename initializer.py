@@ -33,7 +33,7 @@ try:
     meaningless_shoot.windowPos_y_c = -rect[1]
 except:
     meaningless_shoot.windowPos_x_c = 10
-    meaningless_shoot.windowPos_y_c = 40
+    meaningless_shoot.windowPos_y_c = 35
 
 
 class initApp(QWidget):
