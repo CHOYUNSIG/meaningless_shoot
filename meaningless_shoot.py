@@ -35,9 +35,9 @@ cannot be changed by internal
 based on hyperparameters
 must be init by ext func
 '''
-player_size = size[0]//20
-player_velocity = size[0]/fps/2
-bullet_velocity = size[0]/fps/0.5
+player_size = size[1]//20
+player_velocity = size[1]/fps/2
+bullet_velocity = size[1]/fps/0.5
 
 #image load
 image_player = pygame.image.load('meaningless_data/image/player.png')
@@ -49,9 +49,9 @@ def global_var1_init():
     global player_velocity
     global bullet_velocity
 
-    player_size = size[0]//20
-    player_velocity = size[0]/fps/2
-    bullet_velocity = size[0]/fps/0.5
+    player_size = size[1]//20
+    player_velocity = size[1]/fps/2
+    bullet_velocity = size[1]/fps/0.5
     
     return
 '''
@@ -149,7 +149,7 @@ class bullet(pygame.sprite.Sprite): #sprite 1
         self.position = position # 스프라이트의 위치를 저장할 사용자 변수
         self.direction = direction
         self.image = image_bullet # 스프라이트에 사용될 이미지를 저장할 사용자 변수
-        self.image = pygame.transform.scale(self.image, (size[0]//50,size[0]//200))
+        self.image = pygame.transform.scale(self.image, (size[1]//50,size[1]//200))
         self.image = pygame.transform.rotate(self.image, direction) # 이미지를 회전 각도 만큼 회전시킨다
         self.remain_frame = 0
         self.rect = self.image.get_rect()
@@ -159,16 +159,16 @@ class bullet(pygame.sprite.Sprite): #sprite 1
         global bullet_draw_cache
         if self.direction == 0:
             self.position=(round(self.position[0]+bullet_velocity+x_weight), round(self.position[1]+y_weight))
-            if self.position[0] <= size[0]+size[0]//50/2: bullet_draw_cache.append(self)
+            if self.position[0] <= size[0]+size[1]//50/2: bullet_draw_cache.append(self)
         elif self.direction == 90:
             self.position=(round(self.position[0]+x_weight), round(self.position[1]+bullet_velocity+y_weight))
-            if self.position[1] <= size[1]+size[0]//50/2: bullet_draw_cache.append(self)
+            if self.position[1] <= size[1]+size[1]//50/2: bullet_draw_cache.append(self)
         elif self.direction == 180:
             self.position=(round(self.position[0]-bullet_velocity+x_weight), round(self.position[1]+y_weight))
-            if self.position[0] >= -size[0]//50/2: bullet_draw_cache.append(self)
+            if self.position[0] >= -size[1]//50/2: bullet_draw_cache.append(self)
         else:
             self.position=(round(self.position[0]+x_weight), round(self.position[1]-bullet_velocity+y_weight))
-            if self.position[1] >= -size[0]//50/2: bullet_draw_cache.append(self)
+            if self.position[1] >= -size[1]//50/2: bullet_draw_cache.append(self)
         # 출력에 사용될 이미지, 위치를 정한다
         self.rect = self.image.get_rect()
         self.rect.center = self.position # 이미지의 출력 위치를 정한다
@@ -206,7 +206,7 @@ class particle(pygame.sprite.Sprite): #sprite 3
         particle_remain += 1
         print("particle generated",particle_remain)
         pygame.sprite.Sprite.__init__(self)
-        self.size = round(size[0]/200*(random.random()*0.5+0.5))
+        self.size = round(size[1]/200*(random.random()*0.5+0.5))
         self.image = image_wall # 스프라이트에 사용될 이미지를 저장할 사용자 변수
         self.image = pygame.transform.scale(self.image, (self.size, self.size))
         self.position = position
@@ -219,8 +219,8 @@ class particle(pygame.sprite.Sprite): #sprite 3
         bounce_direction_radian = random.random()*math.pi*2
         self.bounce_direction_x = math.cos(bounce_direction_radian)
         self.bounce_direction_y = math.sin(bounce_direction_radian)
-        self.bounce_delta_v = size[0]/fps*(0.5+random.random()*0.5)/0.1
-        self.bounce_max_v = sorted([size[0]*(0.5+random.random()*0.5) for i in range(self.bounce_count)], reverse=True)
+        self.bounce_delta_v = size[1]/fps*(0.5+random.random()*0.5)/0.1
+        self.bounce_max_v = sorted([size[1]*(0.5+random.random()*0.5) for i in range(self.bounce_count)], reverse=True)
         self.bounce_max_v[0] *=2
         self.bounce_current_count = 0
         self.bounce_mode = 1
@@ -250,7 +250,7 @@ class particle(pygame.sprite.Sprite): #sprite 3
             distance = (self.bounce_current_v + next_v)/fps/2
             x_bounce = distance*self.bounce_direction_x
             y_bounce = distance*self.bounce_direction_y
-            new_size = round(self.size*(1+self.bounce_current_v/size[0]))
+            new_size = round(self.size*(1+self.bounce_current_v/size[1]))
             self.image = pygame.transform.scale(self.image, (new_size, new_size))
             self.bounce_current_v = next_v
         else:
@@ -440,12 +440,12 @@ def game_loop():
 
         #벽 생성
         if random.randrange(fps*1) == 1 and (move_x != 0 or move_y != 0):
-            if move_x == -1: init_x = -size[0] // 20 * wall_pattern_size
-            elif move_x == 0: init_x = size[0] // 2 - size[0] // 20 * (wall_pattern_size // 2)
-            else: init_x = size[0] + size[0] // 20
-            if move_y == -1: init_y = -size[0] // 20 * wall_pattern_size
-            elif move_y == 0: init_y = size[1] // 2 - size[0] // 20 * (wall_pattern_size // 2)
-            else: init_y = size[1] + size[0] // 20
+            if move_x == -1: init_x = -player_size * wall_pattern_size
+            elif move_x == 0: init_x = size[0] // 2 - player_size * (wall_pattern_size // 2)
+            else: init_x = size[0] + player_size
+            if move_y == -1: init_y = -player_size * wall_pattern_size
+            elif move_y == 0: init_y = size[1] // 2 - player_size * (wall_pattern_size // 2)
+            else: init_y = size[1] + player_size
 
             temp_wall = [[0]*wall_pattern_size for i in range(wall_pattern_size)]
             if random.randrange(10) == 1:
