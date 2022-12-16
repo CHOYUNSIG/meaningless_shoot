@@ -119,7 +119,7 @@ del app
 if settingWindow.game_start:
     meaningless_shoot.global_var1_init()
     meaningless_shoot.game_loop()
-    while 'r' in meaningless_shoot.buttons:
+    while meaningless_shoot.buttons[pygame.K_r]:
         print("\nreloading game\n")
         time.sleep(0.1)
         meaningless_shoot.game_loop()

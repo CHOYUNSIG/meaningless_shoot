@@ -121,7 +121,7 @@ class player(pygame.sprite.Sprite): #sprite 0
     def __init__(self, x_weight, y_weight): # 생성자 파라미터로 스프라이트에 사용될 이미지 경로와 스프라이트 초기 위치를 받는다
         global player_remain
         player_remain += 1
-        print("player generated", player_remain)
+        #print("player generated", player_remain)
         pygame.sprite.Sprite.__init__(self)
         self.position = (size[0]//2+x_weight, size[1]//2+y_weight)
         self.image = image_player # 스프라이트에 사용될 이미지를 저장할 사용자 변수
@@ -138,7 +138,7 @@ class player(pygame.sprite.Sprite): #sprite 0
     def __del__(self):
         global player_remain
         player_remain -= 1
-        print("player deleted", player_remain)
+        #print("player deleted", player_remain)
 
 class bullet(pygame.sprite.Sprite): #sprite 1
     def __init__(self, position, direction): # 생성자 파라미터로 스프라이트에 사용될 이미지 경로와 스프라이트 초기 위치를 받는다
@@ -295,7 +295,7 @@ def game_loop():
 
     global debug_frame
 
-    buttons = list()
+    buttons = pygame.key.get_pressed()
     x_weight, y_weight = 0, 0
     move_x, move_y = 0, 0
     done = False
@@ -354,12 +354,12 @@ def game_loop():
         #키 입력 처리
         for event in pygame.event.get():# User did something
             if event.type == pygame.KEYDOWN:# If user release what he pressed.
-                buttons = [pygame.key.name(k) for k,v in enumerate(pygame.key.get_pressed()) if v]
+                buttons = pygame.key.get_pressed()
             elif event.type == pygame.KEYUP:
-                buttons = [pygame.key.name(k) for k,v in enumerate(pygame.key.get_pressed()) if v]
+                buttons = pygame.key.get_pressed()
             elif event.type == pygame.QUIT:# If user clicked close
                 done = True # Flag that we are done so we exit this loop
-
+        
         for i in range(len(bullet_cache)-1,-1,-1):
             hit_wall_list = pygame.sprite.spritecollide(bullet_cache[i],wall_cache,False)
             if len(hit_wall_list) > 0:
@@ -379,31 +379,31 @@ def game_loop():
         #파티클 처리
 
         #나가는 키 입력
-        if 'escape' in buttons:
+        if buttons[pygame.K_ESCAPE]:
             print("ecs entered")
             done=True
-        if 'r' in buttons:
+        if buttons[pygame.K_r]:
             done=True
 
         #총알 발사
-        if 'left' in buttons and 'left' not in atk_direction_queue:
-            atk_direction_queue.append('left')
-        elif 'down' in buttons and 'down' not in atk_direction_queue: 
-            atk_direction_queue.append('down')
-        elif 'right' in buttons and 'right' not in atk_direction_queue:
-            atk_direction_queue.append('right')
-        elif 'up' in buttons and 'up' not in atk_direction_queue: 
-            atk_direction_queue.append('up')
+        if buttons[pygame.K_LEFT] and pygame.K_LEFT not in atk_direction_queue:
+            atk_direction_queue.append(pygame.K_LEFT)
+        elif buttons[pygame.K_DOWN] and pygame.K_DOWN not in atk_direction_queue: 
+            atk_direction_queue.append(pygame.K_DOWN)
+        elif buttons[pygame.K_RIGHT] and pygame.K_RIGHT not in atk_direction_queue:
+            atk_direction_queue.append(pygame.K_RIGHT)
+        elif buttons[pygame.K_UP] and pygame.K_UP not in atk_direction_queue: 
+            atk_direction_queue.append(pygame.K_UP)
 
-        if len(atk_direction_queue) != 0 and atk_direction_queue[0] not in buttons:
+        if atk_direction_queue and not buttons[atk_direction_queue[0]]:
             del atk_direction_queue[0]
 
-        if atk_permission == 0 and len(atk_direction_queue) != 0:
-            if atk_direction_queue[0] == 'right':
+        if atk_permission == 0 and atk_direction_queue:
+            if atk_direction_queue[0] == pygame.K_RIGHT:
                 bullet_cache.append(bullet((size[0]/2,size[1]/2),0))
-            elif atk_direction_queue[0] == 'down':
+            elif atk_direction_queue[0] == pygame.K_DOWN:
                 bullet_cache.append(bullet((size[0]/2,size[1]/2),90))
-            elif atk_direction_queue[0] == 'left':
+            elif atk_direction_queue[0] == pygame.K_LEFT:
                 bullet_cache.append(bullet((size[0]/2,size[1]/2),180))
             else:
                 bullet_cache.append(bullet((size[0]/2,size[1]/2),270))
@@ -412,11 +412,11 @@ def game_loop():
         #총알 발사 끝
 
         #플레이어 이동
-        if 'w' in buttons and move_y != 1 : move_y = -1
-        elif 's' in buttons and move_y != -1 : move_y = 1
+        if buttons[pygame.K_w] and move_y != 1 : move_y = -1
+        elif buttons[pygame.K_s] and move_y != -1 : move_y = 1
         else : move_y = 0
-        if 'a' in buttons and move_x != 1 : move_x = -1
-        elif 'd' in buttons and move_x != -1 : move_x = 1
+        if buttons[pygame.K_a] and move_x != 1 : move_x = -1
+        elif buttons[pygame.K_d] and move_x != -1 : move_x = 1
         else : move_x = 0
 
         x_weight, y_weight = 0, 0
