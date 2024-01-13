@@ -12,7 +12,7 @@
 > pip install pygame pyqt5 pypiwin32
 > ```
 
-Just run `initializer`.py and enjoy!
+Just run `initializer.py` and enjoy!
 
 ```
 python initializer.py
