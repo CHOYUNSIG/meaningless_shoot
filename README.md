@@ -1,11 +1,11 @@
 # meaningless_shoot
 
-2D top-down shooting game with Pygame, Python3
+2D top-down shooting game with PyGame, Python3
 
 ## How to play
 
 > ### Requirements:
-> You need to install **Pygame** and **PyQT5** package.
+> You need to install **PyGame** and **PyQT5** package.
 > ```
 > pip install pygame pyqt5
 > ```
