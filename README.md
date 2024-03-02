@@ -5,15 +5,13 @@
 ## How to play
 
 > ### Requirements:
-> This project runs only on **Windows** OS.
-> 
-> You need to install **Pygame**, **PyQT5** and **pypiwin32** package.
+> You need to install **Pygame** and **PyQT5** package.
 > ```
-> pip install pygame pyqt5 pypiwin32
+> pip install pygame pyqt5
 > ```
 
-Just run `initializer.py` and enjoy!
+Just run `init.py` and enjoy!
 
 ```
-python initializer.py
+python init.py
 ```
