@@ -35,7 +35,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type in [pygame.KEYDOWN, pygame.KEYUP]:  # 키 입력 이벤트
                     self.buttons = pygame.key.get_pressed()
-                elif event.type == pygame.QUIT:
+                elif event.type == pygame.QUIT:  # 닫기 버튼을 누름
                     done = True
 
             # 나가는 키 입력
