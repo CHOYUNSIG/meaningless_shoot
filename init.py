@@ -9,7 +9,7 @@ class Init(QWidget):
         super().__init__()
         self.game_start = False
         self.fps = 60
-        self.size = (800, 600)
+        self.size = (640, 480)
         self.initUI()
 
     def initUI(self):
