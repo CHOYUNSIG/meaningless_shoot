@@ -1,5 +1,4 @@
-from math import cos, pi, sin
-from random import randint, shuffle
+from random import randint
 
 import pygame
 from typing_extensions import override

@@ -1,4 +1,3 @@
-from math import sqrt
 from time import perf_counter
 
 import pygame

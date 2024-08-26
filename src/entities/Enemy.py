@@ -1,11 +1,10 @@
+from random import randint
+
 import pygame
 from typing_extensions import override
 
 from src.MeaninglessEntity import MeaninglessEntity as Me
 from src.entities.Particle import Particle
-from random import randint
-from math import cos, sin, pi, sqrt
-
 from src.util.Geometry import mul_point, sub_point, dist
 
 
