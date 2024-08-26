@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCoreApplication
-from game import Game
+from src.Game import Game
 
 
 class Init(QWidget):
@@ -10,9 +10,7 @@ class Init(QWidget):
         self.game_start = False
         self.fps = 60
         self.size = (640, 480)
-        self.initUI()
 
-    def initUI(self):
         self.setWindowTitle('meaningless: settings')
         self.resize(300, 150)
         sqr = self.frameGeometry()
