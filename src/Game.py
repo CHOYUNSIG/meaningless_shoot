@@ -4,6 +4,7 @@ import pygame
 
 from src.entities import Player, Wall, Enemy
 from src.MeaninglessEntity import MeaninglessEntity as Me
+from src.util.Geometry import Point
 from math import sin, cos, pi, sqrt
 from random import randint, shuffle
 from time import sleep
@@ -76,7 +77,7 @@ class Game:
             Me.blit((self.screen.get_width() // 2 - player.pos[0], self.screen.get_height() // 2 - player.pos[1]))
             pygame.display.flip()
 
-    def get_mvdrct(self) -> tuple[int, int]:
+    def get_mvdrct(self) -> Point:
         x, y = 0, 0
         for i, key in enumerate(Game.move_key):
             if self.buttons[key]:
@@ -96,17 +97,17 @@ class Game:
         if drct == (0, 0):
             return False
         size = self.screen.get_size()
-        pattern_edge = len(pattern) * Me.session.unit
-        x, y = [
-            self.pos[i] + (size[i] // 2 + self.unit) * drct[i] + pattern_edge * min(0, drct[i])
+        pattern_size = len(pattern) * self.unit
+        pos = [
+            self.pos[i] + (size[i] // 2 + self.unit) * drct[i] + pattern_size * min(0, drct[i])
             for i in range(2)
         ]
-        if Me.get_collide_entity_by_rect(pygame.rect.Rect(x, y, pattern_edge, pattern_edge), 'Wall', 'Enemy'):
+        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*pos, pattern_size, pattern_size), 'Wall', 'Enemy'):
             return False
         for i in range(len(pattern)):
             for j in range(len(pattern[i])):
                 if pattern[i][j]:
-                    Wall.Wall((x + self.unit * i, y + self.unit * j))
+                    Wall.Wall((self.unit / 2 + pos[0] + self.unit * i, self.unit / 2 + pos[1] + self.unit * j))
         return True
 
     def generate_enemy(self) -> bool:
@@ -117,17 +118,17 @@ class Game:
             self.pos[i] + (size[i] // 2 + self.unit) * round(f[i](pi * r / 4) * sqrt(2))
             for i in range(2)
         ]
-        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*pos, Me.session.unit, Me.session.unit), 'Wall'):
+        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*pos, self.unit, self.unit), 'Wall'):
             return False
-        Enemy.Enemy((pos[0], pos[1]))
+        Enemy.Enemy((self.unit / 2 + pos[0], self.unit / 2 + pos[1]))
         return True
 
 
 def get_snake_pattern(
-    size: int or None = None,
-    m: list[list[bool]] or None = None,
-    x: int or None = None,
-    y: int or None = None
+    size: Optional[int] = None,
+    m: Optional[list[list[bool]]] = None,
+    x: Optional[int] = None,
+    y: Optional[int] = None
 ) -> list[list[bool]]:
     if size is None:
         size = randint(1, 5)
@@ -151,7 +152,7 @@ def get_snake_pattern(
     return m
 
 
-def get_box_pattern(size: int or None = None) -> list[list[bool]]:
+def get_box_pattern(size: Optional[int] = None) -> list[list[bool]]:
     if size is None:
         size = randint(5, 10)
     m = [[False] * size for _ in range(size)]
