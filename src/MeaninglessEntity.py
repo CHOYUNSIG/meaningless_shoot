@@ -14,6 +14,7 @@ ME = TypeVar('ME', bound='MeaninglessEntity')
 class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
     session: 'Game.Game'
     group: dict[str, pygame.sprite.Group] = {}
+    rect_lists: dict[str, list[pygame.rect.Rect]] = {}
     generated: set[ME] = set()
     dispose: set[ME] = set()
 
@@ -32,6 +33,9 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
         for group in list(MeaninglessEntity.group.values()):
             for entity in group:
                 entity.move()
+        # rect_lists 재구성
+        for group_name, group in list(MeaninglessEntity.group.items()):
+            MeaninglessEntity.rect_lists[group_name] = list(map(lambda x: x.get_rounded_rect(), group))
         # update 호출
         for group in list(MeaninglessEntity.group.values()):
             group.update()
@@ -63,7 +67,7 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
         for group in groups:
             if group in MeaninglessEntity.group:
                 sprite_list = MeaninglessEntity.group[group].sprites()
-                index = rect.collidelist(list(map(lambda x: x.get_rounded_rect(), sprite_list)))
+                index = rect.collidelist(MeaninglessEntity.rect_lists[group])
                 if index != -1:
                     return sprite_list[index]
         return None
