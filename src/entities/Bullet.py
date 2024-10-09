@@ -5,6 +5,7 @@ from typing_extensions import override
 import pygame
 
 from src.MeaninglessEntity import MeaninglessEntity as Me
+from src.util.Geometry import Point
 
 
 class Bullet(Me):
@@ -12,7 +13,7 @@ class Bullet(Me):
     velocity = 30  # unit per second
     remain_time = 1  # second
 
-    def __init__(self, pos: tuple[int, int], angle: float):
+    def __init__(self, pos: Point, angle: float):
         super().__init__(
             pygame.transform.rotate(
                 pygame.transform.scale(

@@ -1,13 +1,13 @@
+from math import sin, cos, pi, sqrt
+from random import randint, shuffle
+from time import sleep
 from typing import Optional
 
 import pygame
 
-from src.entities import Player, Wall, Enemy
 from src.MeaninglessEntity import MeaninglessEntity as Me
-from src.util.Geometry import Point
-from math import sin, cos, pi, sqrt
-from random import randint, shuffle
-from time import sleep
+from src.entities import Player, Wall, Enemy
+from src.util.Geometry import Point, sub_point, mul_point
 
 
 class Game:
@@ -33,10 +33,7 @@ class Game:
 
     def loop(self):
         player = Player.Player()
-        Wall.Wall((100, 0))
-        Wall.Wall((0, 100))
-        Wall.Wall((-100, 0))
-        Wall.Wall((0, -100))
+        self.put_wall(get_box_pattern(6), (0, 0))
         done = False
 
         while not done:
@@ -62,18 +59,35 @@ class Game:
             # 벽 생성
             is_wall_generated = False
             if not randint(0, self.fps):
-                is_wall_generated = self.generate_wall()
+                p = randint(0, 12) // 10
+                size = [randint(3, 7), randint(5, 10)][p]
+                pattern = [get_snake_pattern, get_box_pattern][p](size)
+                drct = self.get_mvdrct()
+                if drct != (0, 0):
+                    is_wall_generated = self.put_wall(
+                        pattern,
+                        tuple(
+                            self.pos[i] + (self.screen.get_size()[i] / 2 + size * self.unit / 2) * drct[i]
+                            for i in range(2)
+                        )
+                    )
 
             # 적 생성
-            if not randint(0, self.fps) and not is_wall_generated:
-                self.generate_enemy()
+            if not is_wall_generated and not randint(0, self.fps):
+                r = randint(0, 7)
+                self.put_enemy(
+                    tuple(
+                        self.pos[i] + (self.screen.get_size()[i] / 2 + self.unit) * round([cos, sin][i](pi * r / 4) * sqrt(2))
+                        for i in range(2)
+                    )
+                )
 
             # 객체 업데이트
             Me.process()
             self.pos = player.pos
 
             # 화면 생성
-            self.screen.fill((50, 50, 50))
+            self.screen.fill((20, 20, 20))
             Me.blit((self.screen.get_width() // 2 - player.pos[0], self.screen.get_height() // 2 - player.pos[1]))
             pygame.display.flip()
 
@@ -91,70 +105,51 @@ class Game:
         else:
             return None
 
-    def generate_wall(self) -> bool:
-        pattern = [get_snake_pattern, get_box_pattern][randint(0, 12) // 10]()
-        drct = self.get_mvdrct()
-        if drct == (0, 0):
-            return False
-        size = self.screen.get_size()
-        pattern_size = len(pattern) * self.unit
-        pos = [
-            self.pos[i] + (size[i] // 2 + self.unit) * drct[i] + pattern_size * min(0, drct[i])
-            for i in range(2)
-        ]
-        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*pos, pattern_size, pattern_size), 'Wall', 'Enemy'):
+    def put_wall(self, pattern: list[list[bool]], center: Point) -> bool:
+        size = (max(len(p) for p in pattern), len(pattern))
+        topleft = sub_point(center, mul_point(size, self.unit / 2))
+        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*topleft, *mul_point(size, self.unit)), 'Wall', 'Enemy'):
             return False
         for i in range(len(pattern)):
             for j in range(len(pattern[i])):
                 if pattern[i][j]:
-                    Wall.Wall((self.unit / 2 + pos[0] + self.unit * i, self.unit / 2 + pos[1] + self.unit * j))
+                    Wall.Wall((self.unit / 2 + topleft[0] + self.unit * j, self.unit / 2 + topleft[1] + self.unit * i))
         return True
 
-    def generate_enemy(self) -> bool:
-        r = randint(0, 7)
-        size = self.screen.get_size()
-        f = [cos, sin]
-        pos = [
-            self.pos[i] + (size[i] // 2 + self.unit) * round(f[i](pi * r / 4) * sqrt(2))
-            for i in range(2)
-        ]
-        if Me.get_collide_entity_by_rect(pygame.rect.Rect(*pos, self.unit, self.unit), 'Wall'):
+    def put_enemy(self, pos: Point) -> bool:
+        rect = pygame.rect.Rect(0, 0, self.unit, self.unit)
+        rect.center = pos
+        if Me.get_collide_entity_by_rect(rect, 'Wall'):
             return False
-        Enemy.Enemy((self.unit / 2 + pos[0], self.unit / 2 + pos[1]))
+        Enemy.Enemy(pos)
         return True
 
 
-def get_snake_pattern(
-    size: Optional[int] = None,
-    m: Optional[list[list[bool]]] = None,
-    x: Optional[int] = None,
-    y: Optional[int] = None
-) -> list[list[bool]]:
-    if size is None:
-        size = randint(1, 5)
-    if m is None:
-        m = [[False] * size for _ in range(size)]
-        x = y = size // 2
-    m[x][y] = True
-    nextpos = [[x + round(cos(t * pi / 2)), y + round(sin(t * pi / 2))] for t in range(4)]
-    shuffle(nextpos)
-    for dx, dy in nextpos:
-        if 0 <= dx < size and 0 <= dy < size and not m[dx][dy] and len(
+def get_snake_pattern(size: int) -> list[list[bool]]:
+    m = [[False] * size for _ in range(size)]
+
+    def dfs(pos: Point):
+        x, y = pos
+        m[x][y] = True
+        nextpos = [[x + round(cos(t * pi / 2)), y + round(sin(t * pi / 2))] for t in range(4)]
+        shuffle(nextpos)
+        for dx, dy in nextpos:
+            if 0 <= dx < size and 0 <= dy < size and not m[dx][dy] and len(
                 list(
                     filter(
                         lambda p: 0 <= p[0] < size and 0 <= p[1] < size and m[p[0]][p[1]],
                         [[dx + round(cos(t * pi / 2)), dy + round(sin(t * pi / 2))] for t in range(4)]
                     )
                 )
-        ) <= 1 and randint(0, 2):
-            get_snake_pattern(size, m, dx, dy)
-            break
+            ) <= 1 and randint(0, 2):
+                dfs((dx, dy))
+                break
+
+    dfs((size // 2, size // 2))
     return m
 
 
-def get_box_pattern(size: Optional[int] = None) -> list[list[bool]]:
-    if size is None:
-        size = randint(5, 10)
+def get_box_pattern(size: int) -> list[list[bool]]:
     m = [[False] * size for _ in range(size)]
     for t, dx, dy in [[(size - 1) * (i // 2), round(cos(i * pi / 2)), round(sin(i * pi / 2))] for i in range(4)]:
         for x, y in [[t + dx * i, t + dy * i] for i in range(size)]:

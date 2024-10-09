@@ -5,7 +5,7 @@ from typing_extensions import override
 
 from src.MeaninglessEntity import MeaninglessEntity as Me
 from src.entities.Particle import Particle
-from src.util.Geometry import mul_point, sub_point, dist
+from src.util.Geometry import mul_point, sub_point, dist, Point
 
 
 class Enemy(Me):
@@ -13,7 +13,7 @@ class Enemy(Me):
     velocity = 5  # unit per second
     particle_amount = (8, 12)
 
-    def __init__(self, pos: tuple[float or int, float or int]):
+    def __init__(self, pos: Point):
         super().__init__(
             pygame.transform.scale(Enemy.image, (Me.session.unit, Me.session.unit)),
             pos,
@@ -21,13 +21,9 @@ class Enemy(Me):
         )
 
     @override
-    def kill(self):
-        super().kill()
-
-    @override
     def move(self):
         to_player = sub_point(Me.session.pos, self.pos)
-        if dist((0, 0), to_player) < Me.session.unit:
+        if dist((0, 0), to_player) < 1e-10:
             return
         unit = Me.session.unit * Enemy.velocity / Me.session.fps
         self.move_with_collision_safety(mul_point(to_player, unit / dist((0, 0), to_player)), 'Wall')

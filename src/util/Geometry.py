@@ -1,8 +1,9 @@
 import math
+from typing import Union
 from math import sqrt, acos, pi
 
-number = float | int
-Point = tuple[number, number]
+number = Union[float, int]
+Point = tuple[number, ...]
 
 
 def round_point(p: Point) -> Point:

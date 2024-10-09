@@ -7,13 +7,14 @@ import pygame
 from typing_extensions import override
 
 from src.MeaninglessEntity import MeaninglessEntity as Me
+from src.util.Geometry import Point
 
 
 class Particle(Me):
     get_distance: Callable[[], float] = lambda: random() * 2 + 1  # unit
     get_lifetime: Callable[[], float] = lambda: random() * 0.3 + 0.2  # second
 
-    def __init__(self, pos: tuple[int, int], image: pygame.Surface):
+    def __init__(self, pos: Point, image: pygame.Surface):
         self.size = round(Me.session.unit / 2 * (random() * 0.5 + 0.5))
         super().__init__(
             pygame.transform.scale(image, (self.size, self.size)),

@@ -1,9 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from math import ceil
 from typing import TypeVar, Optional
 
 import pygame
-from typing_extensions import override
 
 from src import Game
 from src.util.Geometry import Point, add_point, round_point, line_dist, copysign
@@ -35,7 +33,7 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
                 entity.move()
         # rect_lists 재구성
         for group_name, group in list(MeaninglessEntity.group.items()):
-            MeaninglessEntity.rect_lists[group_name] = list(map(lambda x: x.get_rounded_rect(), group))
+            MeaninglessEntity.rect_lists[group_name] = list(map(lambda x: x.get_rounded_rect(), group.sprites()))
         # update 호출
         for group in list(MeaninglessEntity.group.values()):
             group.update()
@@ -48,6 +46,9 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
         for entity in MeaninglessEntity.dispose:
             pygame.sprite.Sprite.kill(entity)
             del entity
+        # rect_lists 재구성
+        for group_name, group in list(MeaninglessEntity.group.items()):
+            MeaninglessEntity.rect_lists[group_name] = list(map(lambda x: x.get_rounded_rect(), group.sprites()))
 
     @staticmethod
     def blit(offset: Point):
@@ -66,10 +67,9 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
     def get_collide_entity_by_rect(rect: pygame.rect.Rect, *groups: str) -> Optional['MeaninglessEntity']:
         for group in groups:
             if group in MeaninglessEntity.group:
-                sprite_list = MeaninglessEntity.group[group].sprites()
                 index = rect.collidelist(MeaninglessEntity.rect_lists[group])
                 if index != -1:
-                    return sprite_list[index]
+                    return MeaninglessEntity.group[group].sprites()[index]
         return None
 
     def __init__(self, image: pygame.Surface, pos: Point, z_index: int):
@@ -93,14 +93,13 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    @override
     def update(self):
         """
         이 메소드는 나머지 상태를 조절합니다.
         한 프레임 루프에서 move 함수보다 나중에 호출됩니다.
         객체의 생성 및 제거는 반드시 이 메소드에서 해야 합니다.
         """
-        pass
+        super().update()
 
     def draw(self: ME, offset: Point, z_group: dict[int, pygame.sprite.Group]):
         self.rect.center = round_point(add_point(self.pos, offset))
@@ -108,7 +107,6 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
             z_group[self.z_index] = pygame.sprite.Group()
         z_group[self.z_index].add(self)
 
-    @override
     def kill(self):
         MeaninglessEntity.dispose.add(self)
 
@@ -124,21 +122,20 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
 
     def move_with_collision_safety(self, amount: Point, *collide_groups: str):
         pos = tuple(self.pos)
-        dx, dy = [copysign(0.5, v) for v in amount]
+        dpos = [copysign(0.5, v) for v in amount]
         dst = add_point(self.pos, amount)
-        for _ in range(ceil(sum(abs(amount[i]) * 2 for i in range(2)))):
-            passed = False
-            for next_pos in sorted(
-                [(pos[0] + dx * int(i == 0), pos[1] + dy * int(i == 1)) for i in range(2) if [dx, dy][i] != 0],
-                key=lambda p: line_dist(p, self.pos, dst)
+        done = [d == 0 for d in dpos]
+        while not all(done):
+            for axis, next_pos in sorted(
+                [(axis, tuple(pos[i] + dpos[i] * int(axis == i) for i in range(2))) for axis in range(2) if dpos[axis] != 0],
+                key=lambda pair: line_dist(pair[1], self.pos, dst),
             ):
                 if MeaninglessEntity.get_collide_entity_by_rect(
                     self.get_rounded_rect(next_pos),
-                    *collide_groups
-                ) is None:
+                    *collide_groups,
+                ) is None and (dst[axis] - next_pos[axis]) * dpos[axis] >= 0:
                     pos = next_pos
-                    passed = True
                     break
-            if not passed:
-                break
+                else:
+                    done[axis] = True
         self.pos = pos
