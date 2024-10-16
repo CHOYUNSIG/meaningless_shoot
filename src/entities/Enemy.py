@@ -9,7 +9,7 @@ from src.util.Geometry import mul_point, sub_point, dist, Point
 
 
 class Enemy(Me):
-    image = pygame.image.load('res/image/player.png')
+    image = pygame.image.load('res/image/enemy.png')
     velocity = 5  # unit per second
     particle_amount = (8, 12)
 
