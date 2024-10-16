@@ -37,3 +37,5 @@ class Player(Me):
         if degree is not None and perf_counter() - self.shoot_time > Player.reload_time:
             self.shoot_time = perf_counter()
             Bullet(self.pos, degree)
+        if self.get_collide_entity('Enemy'):
+            Me.session.game_over()
