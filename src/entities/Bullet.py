@@ -5,6 +5,7 @@ from typing_extensions import override
 import pygame
 
 from src.MeaninglessEntity import MeaninglessEntity as Me
+from src.entities.FadeText import FadeText
 from src.util.Geometry import Point
 
 
@@ -27,6 +28,7 @@ class Bullet(Me):
         )
         self.angle = angle  # degree
         self.generated_time = perf_counter()
+        self.kill_streak = 0
 
     @override
     def move(self):
@@ -35,5 +37,10 @@ class Bullet(Me):
 
     @override
     def update(self):
+        if self.get_collide_entity('Enemy'):
+            score = 2 ** self.kill_streak
+            FadeText(f"+{score}", Me.session.unit, (255, 0, 0), self.pos, 1.0)
+            Me.session.score += score
+            self.kill_streak += 1
         if self.get_collide_entity('Wall') or perf_counter() - self.generated_time > Bullet.remain_time:
             self.kill()
