@@ -38,7 +38,7 @@ class Bullet(Me):
     @override
     def update(self):
         if self.get_collide_entity('Enemy'):
-            score = 2 ** self.kill_streak
+            score = 3 ** self.kill_streak
             FadeText(f"+{score}", Me.session.unit, (255, 0, 0), self.pos, 1.0)
             Me.session.score += score
             self.kill_streak += 1
