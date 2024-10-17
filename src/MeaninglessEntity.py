@@ -21,6 +21,13 @@ class MeaninglessEntity(pygame.sprite.Sprite, metaclass=ABCMeta):
         MeaninglessEntity.session = session
 
     @staticmethod
+    def reset():
+        MeaninglessEntity.group = {}
+        MeaninglessEntity.rect_lists = {}
+        MeaninglessEntity.generated = set()
+        MeaninglessEntity.dispose = set()
+
+    @staticmethod
     def process():
         """
         모든 객체의 move 함수와 update 함수를 호출합니다.

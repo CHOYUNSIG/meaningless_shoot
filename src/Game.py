@@ -25,7 +25,7 @@ class Game:
         self.unit = min(size) // 20
         self.fps = fps
 
-        self.buttons: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
+        self.buttons = pygame.key.get_pressed()
         self.pos = (0, 0)
         self.shoot_queue = []
 
@@ -42,106 +42,131 @@ class Game:
             continue
         pygame.display.set_caption("meaningless: shoot")
 
+    def reset(self):
+        Me.reset()
+
+        self.pos = (0, 0)
+        self.shoot_queue = []
+
+        self.pre_drct = (0, 0)
+        self.pre_target_inertia = [0.0, 0.0]
+        self.pre_inertia = (0.0, 0.0)
+        self.inertia_changed_time = [0.0, 0.0]
+
+        self.score = 0
+        self.end_flag = False
+
     def loop(self):
-        player = Player.Player()
-        self.put_wall(get_box_pattern(6), (0, 0))
+        while True:
+            self.reset()
 
-        while not self.end_flag:
-            # 프레임 시작
-            current_time = perf_counter()
-            self.clock.tick(self.fps)
+            player = Player.Player()
+            self.put_wall(get_box_pattern(6), (0, 0))
+            
+            # 게임 시작
+            while not self.end_flag:
+                # 프레임 시작
+                current_time = perf_counter()
+                self.clock.tick(self.fps)
 
-            # 이벤트 검사
-            for event in pygame.event.get():
-                if event.type in [pygame.KEYDOWN, pygame.KEYUP]:  # 키 입력 이벤트
-                    self.buttons = pygame.key.get_pressed()
-                    for key in Game.shoot_key:
-                        if self.buttons[key] and key not in self.shoot_queue:
-                            self.shoot_queue.append(key)
-                        if not self.buttons[key] and key in self.shoot_queue:
-                            self.shoot_queue.remove(key)
-                elif event.type == pygame.QUIT:  # 닫기 버튼을 누름
-                    self.end_flag = True
+                # 이벤트 검사
+                for event in pygame.event.get():
+                    if event.type in [pygame.KEYDOWN, pygame.KEYUP]:  # 키 입력 이벤트
+                        self.buttons = pygame.key.get_pressed()
+                        for key in Game.shoot_key:
+                            if self.buttons[key] and key not in self.shoot_queue:
+                                self.shoot_queue.append(key)
+                            if not self.buttons[key] and key in self.shoot_queue:
+                                self.shoot_queue.remove(key)
+                    elif event.type == pygame.QUIT:  # 닫기 버튼을 누름
+                        self.end_flag = True
 
-            # 벽 생성
-            is_wall_generated = False
-            if not randint(0, self.fps):
-                p = randint(0, 12) // 10
-                size = [randint(3, 7), randint(5, 10)][p]
-                pattern = [get_snake_pattern, get_box_pattern][p](size)
-                drct = self.get_mvdrct()
-                if drct != (0, 0):
-                    is_wall_generated = self.put_wall(
-                        pattern,
+                # 벽 생성
+                is_wall_generated = False
+                if not randint(0, self.fps):
+                    p = randint(0, 12) // 10
+                    size = [randint(3, 7), randint(5, 10)][p]
+                    pattern = [get_snake_pattern, get_box_pattern][p](size)
+                    drct = self.get_mvdrct()
+                    if drct != (0, 0):
+                        is_wall_generated = self.put_wall(
+                            pattern,
+                            tuple(
+                                self.pos[i] + \
+                                (self.screen.get_size()[i] / 2 + (size + Game.inertia_intensity) * self.unit / 2) * drct[i]
+                                for i in range(2)
+                            )
+                        )
+
+                # 적 생성
+                if not is_wall_generated and not randint(0, self.fps):
+                    r = randint(0, 7)
+                    self.put_enemy(
                         tuple(
                             self.pos[i] + \
-                            (self.screen.get_size()[i] / 2 + (size + Game.inertia_intensity) * self.unit / 2) * drct[i]
+                            (self.screen.get_size()[i] / 2 + self.unit * Game.inertia_intensity) * \
+                            round([cos, sin][i](pi * r / 4) * sqrt(2))
                             for i in range(2)
                         )
                     )
 
-            # 적 생성
-            if not is_wall_generated and not randint(0, self.fps):
-                r = randint(0, 7)
-                self.put_enemy(
-                    tuple(
-                        self.pos[i] + \
-                        (self.screen.get_size()[i] / 2 + self.unit * Game.inertia_intensity) * \
-                        round([cos, sin][i](pi * r / 4) * sqrt(2))
-                        for i in range(2)
-                    )
+                # 객체 업데이트
+                Me.process()
+                self.pos = player.pos
+
+                # 뷰포트 관성 처리
+                drct = self.get_mvdrct()
+                for i in range(2):
+                    if drct[i] != self.pre_drct[i]:
+                        self.inertia_changed_time[i] = current_time
+                        self.pre_target_inertia[i] = self.pre_inertia[i]
+                target_inertia = mul_point(drct, -self.unit * Game.inertia_intensity)
+                inertia = tuple(
+                    self.pre_target_inertia[i] + \
+                    (target_inertia[i] - self.pre_target_inertia[i]) * \
+                    (1 - 1 / ((current_time - self.inertia_changed_time[i]) * Game.inertia_speed + 1))
+                    for i in range(2)
                 )
+                self.pre_drct = drct
+                self.pre_inertia = inertia
 
-            # 객체 업데이트
-            Me.process()
-            self.pos = player.pos
+                # 화면 생성
+                self.screen.fill((20, 20, 20))
+                Me.blit(tuple(self.screen.get_size()[i] // 2 - (self.pos[i] + inertia[i]) for i in range(2)))
+                self.screen.blit(
+                    pygame.font.Font("res/font/OpenSans-Bold.ttf", self.unit)
+                        .render(f"Score: {self.score}", True, (255, 255, 255)),
+                    (0, 0),
+                )
+                pygame.display.flip()
 
-            # 뷰포트 관성 처리
-            drct = self.get_mvdrct()
-            for i in range(2):
-                if drct[i] != self.pre_drct[i]:
-                    self.inertia_changed_time[i] = current_time
-                    self.pre_target_inertia[i] = self.pre_inertia[i]
-            target_inertia = mul_point(drct, -self.unit * Game.inertia_intensity)
-            inertia = tuple(
-                self.pre_target_inertia[i] + \
-                (target_inertia[i] - self.pre_target_inertia[i]) * \
-                (1 - 1 / ((current_time - self.inertia_changed_time[i]) * Game.inertia_speed + 1))
-                for i in range(2)
-            )
-            self.pre_drct = drct
-            self.pre_inertia = inertia
-
-            # 화면 생성
-            self.screen.fill((20, 20, 20))
-            Me.blit(tuple(self.screen.get_size()[i] // 2 - (self.pos[i] + inertia[i]) for i in range(2)))
+            # 게임 오버 이후
+            game_over_text = pygame.font.Font(
+                "res/font/OpenSans-Bold.ttf",
+                self.unit * 3
+            ).render("Game Over",True,(127, 255, 127))
             self.screen.blit(
-                pygame.font.Font("res/font/OpenSans-Bold.ttf", self.unit)
-                    .render(f"Score: {self.score}", True, (255, 255, 255)),
-                (0, 0),
+                game_over_text,
+                sub_point(self.screen.get_rect().center, mul_point(game_over_text.get_size(), 0.5))
             )
             pygame.display.flip()
 
-        # 게임 오버 이후
-        game_over_text = pygame.font.Font(
-            "res/font/OpenSans-Bold.ttf",
-            self.unit * 3
-        ).render("Game Over",True,(127, 255, 127))
-        self.screen.blit(
-            game_over_text,
-            sub_point(self.screen.get_rect().center, mul_point(game_over_text.get_size(), 0.5))
-        )
-        pygame.display.flip()
+            while True:
+                # 프레임 시작
+                self.clock.tick(self.fps)
 
-        done = False
-        while not done:
-            # 프레임 시작
-            self.clock.tick(self.fps)
+                # 이벤트 검사
+                for event in pygame.event.get():
+                    if event.type in [pygame.KEYDOWN, pygame.KEYUP]:  # 키 입력 이벤트
+                        self.buttons = pygame.key.get_pressed()
+                    elif event.type == pygame.QUIT:
+                        return
 
-            # 이벤트 검사
-            for event in pygame.event.get():
-                if (event.type == pygame.KEYDOWN and pygame.key.get_pressed()[pygame.K_ESCAPE]) or (event.type == pygame.QUIT):
-                    done = True
+                if self.buttons[pygame.K_r]:
+                    break
+
+                if self.buttons[pygame.K_ESCAPE]:
+                    return
 
 
     def get_mvdrct(self) -> Point:
