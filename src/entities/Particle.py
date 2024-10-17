@@ -40,5 +40,5 @@ class Particle(Me):
 
     @override
     def update(self):
-        if self.get_collide_entity('Wall', 'Player', 'Enemy') or perf_counter() - self.generated_time > self.lifetime:
+        if self.get_collide_entity('Wall') or perf_counter() - self.generated_time > self.lifetime:
             self.kill()
